@@ -14,8 +14,8 @@ MOUSE_BUTTONS = {
     "Middle": Button.middle,
 }
 
-HOTKEY_TOGGLE = "F6"   # 開始 / 停止
-HOTKEY_STOP = "F7"     # 緊急停止（常に止まる）
+HOTKEY_START = "F6"    # 開始
+HOTKEY_STOP = "F7"     # 停止（常に止まる）
 
 
 class AutoClicker:
@@ -44,8 +44,8 @@ class AutoClicker:
         # --- Hotkey info ---
         info_frame = ttk.Frame(self.root)
         info_frame.pack(fill="x", padx=10, pady=(8, 0))
-        ttk.Label(info_frame, text=f"[{HOTKEY_TOGGLE}] Start / Stop", foreground="gray").pack(side="left")
-        ttk.Label(info_frame, text=f"  [{HOTKEY_STOP}] Emergency Stop", foreground="red").pack(side="left")
+        ttk.Label(info_frame, text=f"[{HOTKEY_START}] Start", foreground="gray").pack(side="left")
+        ttk.Label(info_frame, text=f"  [{HOTKEY_STOP}] Stop", foreground="red").pack(side="left")
 
         # --- Click Interval ---
         interval_frame = ttk.LabelFrame(self.root, text="Click Interval")
@@ -117,13 +117,24 @@ class AutoClicker:
         )
         ttk.Label(fixed_row, text="times").pack(side="left")
 
-        # --- Start/Stop button ---
+        # --- Start / Stop buttons ---
+        btn_frame = ttk.Frame(self.root)
+        btn_frame.pack(fill="x", padx=10, pady=8)
+
         self.start_btn = ttk.Button(
-            self.root,
-            text=f"Start  [{HOTKEY_TOGGLE}]",
-            command=self.toggle,
+            btn_frame,
+            text=f"Start  [{HOTKEY_START}]",
+            command=self.start,
         )
-        self.start_btn.pack(fill="x", padx=10, pady=8)
+        self.start_btn.pack(side="left", expand=True, fill="x", padx=(0, 4))
+
+        self.stop_btn = ttk.Button(
+            btn_frame,
+            text=f"Stop  [{HOTKEY_STOP}]",
+            command=self.stop,
+            state="disabled",
+        )
+        self.stop_btn.pack(side="left", expand=True, fill="x", padx=(4, 0))
 
         # --- Status ---
         self.status_var = tk.StringVar(value="Status: Stopped")
@@ -136,7 +147,7 @@ class AutoClicker:
     def _setup_hotkeys(self) -> None:
         def on_press(key):
             if key == Key.f6:
-                self.toggle()
+                self.start()
             elif key == Key.f7:
                 self.stop()
 
@@ -147,11 +158,9 @@ class AutoClicker:
     # Click control
     # ------------------------------------------------------------------
 
-    def toggle(self) -> None:
+    def start(self) -> None:
         with self._lock:
-            if self.clicking:
-                self._do_stop()
-            else:
+            if not self.clicking:
                 self._do_start()
 
     def stop(self) -> None:
@@ -208,11 +217,13 @@ class AutoClicker:
     # ------------------------------------------------------------------
 
     def _on_started(self) -> None:
-        self.start_btn.config(text=f"Stop  [{HOTKEY_TOGGLE}]")
+        self.start_btn.config(state="disabled")
+        self.stop_btn.config(state="normal")
         self.status_var.set("Status: Running ...")
 
     def _on_stopped(self) -> None:
-        self.start_btn.config(text=f"Start  [{HOTKEY_TOGGLE}]")
+        self.start_btn.config(state="normal")
+        self.stop_btn.config(state="disabled")
         self.status_var.set("Status: Stopped")
 
     # ------------------------------------------------------------------
