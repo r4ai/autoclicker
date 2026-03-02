@@ -136,6 +136,15 @@ class AutoClicker:
         )
         self.stop_btn.pack(side="left", expand=True, fill="x", padx=(4, 0))
 
+        # --- Always on Top ---
+        self.always_on_top = tk.BooleanVar(value=False)
+        ttk.Checkbutton(
+            self.root,
+            text="Always on Top",
+            variable=self.always_on_top,
+            command=self._on_always_on_top_changed,
+        ).pack(anchor="w", padx=12, pady=(0, 4))
+
         # --- Status ---
         self.status_var = tk.StringVar(value="Status: Stopped")
         ttk.Label(self.root, textvariable=self.status_var, anchor="center").pack(pady=(0, 8))
@@ -215,6 +224,9 @@ class AutoClicker:
     # ------------------------------------------------------------------
     # UI state callbacks
     # ------------------------------------------------------------------
+
+    def _on_always_on_top_changed(self) -> None:
+        self.root.attributes("-topmost", self.always_on_top.get())
 
     def _on_started(self) -> None:
         self.start_btn.config(state="disabled")
